@@ -1,78 +1,79 @@
-from locators.main_page_locators import MainPageLocators
+import allure
+from pages.base_page import BasePage
 from locators.order_page_locators import OrderPageLocators
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions
+from urls import Urls
 
-class OrderPageSamokat():
-    def __init__(self, driver):
-        self.driver = driver
-
-    def set_first_name(self, first_name):
-        first_name_input = self.driver.find_element(*OrderPageLocators.FIRST_NAME_FIELD)
-        first_name_input.send_keys(first_name)
+class OrderPageSamokat(BasePage):
     
+    @allure.step('Ввести имя')
+    def set_first_name(self, first_name):
+        self.send_in_input(OrderPageLocators.FIRST_NAME_FIELD, first_name)
+        
+    @allure.step('Ввести фамилию')
     def set_last_name(self, last_name):
-        last_name_input = self.driver.find_element(*OrderPageLocators.LAST_NAME_FIELD)
-        last_name_input.send_keys(last_name)
-
+        self.send_in_input(OrderPageLocators.LAST_NAME_FIELD, last_name)
+    
+    @allure.step('Ввести адрес')
     def set_address(self, address):
-        address_input = self.driver.find_element(*OrderPageLocators.ADDRESS_FIELD)
-        address_input.send_keys(address)
-
+        self.send_in_input(OrderPageLocators.ADDRESS_FIELD, address)
+    
+    @allure.step('Выбрать станцию метро')
     def choose_metro(self):
-        self.driver.find_element(*OrderPageLocators.METRO_STATION_FIELD).click()
-        WebDriverWait(self.driver, 10).until(expected_conditions.element_to_be_clickable(OrderPageLocators.METRO_STATION_FIELD))
-        self.driver.find_element(*OrderPageLocators.METRO_STATION_CHERKIZOVSKAYA).click()
-
+        self.click_to_element(OrderPageLocators.METRO_STATION_FIELD)
+        self.click_to_element(OrderPageLocators.METRO_STATION_CHERKIZOVSKAYA)
+    
+    @allure.step('Ввести номер телефона')
     def set_phone(self, phone):
-        phone_input = self.driver.find_element(*OrderPageLocators.PHONE_FIELD)
-        phone_input.send_keys(phone)
-
+        self.send_in_input(OrderPageLocators.PHONE_FIELD, phone)
+        
+    @allure.step('Нажать Продолжить')
     def confirm_first_step(self):
-        button =  self.driver.find_element(*OrderPageLocators.CONFIRMATION_FIRST_STEP_BUTTON)
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
-        WebDriverWait(self.driver, 10).until(expected_conditions.element_to_be_clickable(OrderPageLocators.CONFIRMATION_FIRST_STEP_BUTTON))
-        self.driver.find_element(*OrderPageLocators.CONFIRMATION_FIRST_STEP_BUTTON).click()
-
+        self.click_to_element(OrderPageLocators.CONFIRMATION_FIRST_STEP_BUTTON)
+    
+    @allure.step('Выбрать дату')
     def choose_date(self):
-        self.driver.find_element(*OrderPageLocators.DATE_FIELD).click()
-        self.driver.find_element(*OrderPageLocators.DATE_TODAY).click()
-
+        self.click_to_element(OrderPageLocators.DATE_FIELD)
+        self.click_to_element(OrderPageLocators.DATE_TODAY)
+    
+    @allure.step('Выбрать срок аренды')
     def choose_rental_period(self):
-        self.driver.find_element(*OrderPageLocators.RENTAL_PERIOD_FIELD).click()
-        self.driver.find_element(*OrderPageLocators.RENTAL_PERIOD_DAY).click()
-
+        self.click_to_element(OrderPageLocators.RENTAL_PERIOD_FIELD)
+        self.click_to_element(OrderPageLocators.RENTAL_PERIOD_DAY)
+    
+    @allure.step('Выбрать цвет самоката')
     def choose_color(self):
-        self.driver.find_element(*OrderPageLocators.COLOR).click()
-
+        self.click_to_element(OrderPageLocators.COLOR)
+    
+    @allure.step('Ввести комментарий')
     def set_comment(self, comment):
-        comment_input = self.driver.find_element(*OrderPageLocators.COMMENT_FIELD)
-        comment_input.send_keys(comment) #+79000000000
-
+        self.send_in_input(OrderPageLocators.COMMENT_FIELD, comment)
+    
+    @allure.step('Нажать Заказать')
     def confirmation(self):
-        self.driver.find_element(*OrderPageLocators.CONFIRMATION_BUTTON).click()
-
+        self.click_to_element(OrderPageLocators.CONFIRMATION_BUTTON)
+    
+    @allure.step('Подтвердить заказ')
     def confirmation_in_button(self):
-        self.driver.find_element(*OrderPageLocators.CONFIRMATION_BUTTON_MODAL).click()
+        self.click_to_element(OrderPageLocators.CONFIRMATION_BUTTON_MODAL)
 
+    @allure.step('Проверить, что отобразилась модалка успешного заказа')
     def check_visibility_success_modal(self):
-        modal = self.driver.find_element(*OrderPageLocators.SUCCESS_MODAL)
-        WebDriverWait(self.driver, 10).until(expected_conditions.visibility_of_element_located(OrderPageLocators.SUCCESS_MODAL))
+        modal = self.find_element_with_wait(OrderPageLocators.SUCCESS_MODAL)
         return modal.is_displayed()
     
+    @allure.step('Проверить, что клик по лого Яндекса редиректит Дзен в новой вкладке')
     def check_logo_redirect_dzen(self):
-        self.driver.find_element(*OrderPageLocators.STATUS_BUTTON).click()
-        self.driver.find_element(*OrderPageLocators.YANDEX_LOGO).click()
-        WebDriverWait(self.driver, 5).until(expected_conditions.number_of_windows_to_be(2))
-        all_windows = self.driver.window_handles
-        self.driver.switch_to.window(all_windows[-1])
-        return WebDriverWait(self.driver, 5).until(expected_conditions.url_contains("https://dzen.ru"))
+        self.click_to_element(OrderPageLocators.STATUS_BUTTON)
+        self.click_to_element(OrderPageLocators.YANDEX_LOGO)
+        self.wait_two_windows()
+        self.switch_to_window(-1)
+        return self.wait_for_url_contains(Urls.DZEN_PAGE)
     
+    @allure.step('Проверить, что клик по лого Самоката открывает главную страницу')
     def check_logo_open_main_page(self):
-        all_windows = self.driver.window_handles
-        self.driver.switch_to.window(all_windows[0])
-        self.driver.find_element(*OrderPageLocators.SAMOKAT_LOGO).click()
-        return WebDriverWait(self.driver, 10).until(expected_conditions.url_to_be("https://qa-scooter.praktikum-services.ru/"))
+        self.switch_to_window(0)
+        self.click_to_element(OrderPageLocators.SAMOKAT_LOGO)
+        return self.wait_for_url(Urls.MAIN_PAGE)
     
     
         
